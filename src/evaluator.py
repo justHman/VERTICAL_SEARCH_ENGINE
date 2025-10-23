@@ -94,7 +94,7 @@ def main():
     total_docs = len(corpus)
 
     # Check for environment variable N_QUERIES from batch script
-    n_queries_env = os.environ.get("N_QUERIES")
+    n_queries_env = ENV["N_QUERIES"]
     if n_queries_env:
         try:
             n_queries = int(n_queries_env)
