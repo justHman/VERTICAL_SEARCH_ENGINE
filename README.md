@@ -27,6 +27,36 @@ A focused vertical search engine built for the Natural Food Corpus. This project
 
 ---
 
+## Project Layout
+
+Repository tree (top-level):
+
+```text
+nf_search_engine/
+├─ app/
+│  └─ streamlit_app.py           # Streamlit UI
+├─ src/
+│  ├─ build_inverted_index.py    # inverted index builder
+│  ├─ searcher.py                # retrieval logic & snippet generation
+│  └─ evaluator.py               # evaluation & plotting utilities
+├─ utils/
+│  ├─ loader.py                  # data loaders
+│  ├─ processor.py               # text processing (spaCy + transformers)
+│  ├─ creator.py                 # index creator
+│  └─ caculator.py               # tf-idf, metrics
+├─ data/
+│  ├─ nfcorpus/
+│  │  ├─ corpus.jsonl
+│  │  └─ queries.jsonl
+│  └─ qrels/
+├─ results/                       # evaluation outputs and plots
+├─ ENV.json.exp / ENV.json        # example and active environment config
+├─ requirements.txt
+└─ set_up.bat
+```
+
+---
+
 ## Quick Start (Windows)
 
 This repository includes an enhanced setup script `set_up.bat` with a beautiful terminal UI that automates the entire workflow:
@@ -77,10 +107,10 @@ set_up.bat --no-run --skip-eval
 
 The project uses an `ENV.json` configuration file (example provided as `ENV.json.exp`). Typical fields:
 
-- `CORPUS_PATH` — path to the JSONL corpus file
-- `INVERTED_INDEX_PATH` — path to save/load the inverted index (default: `inverted_index.json`)
-- `QUERIES_PATH` — path to queries JSONL
-- `QRELS_PATH` — path to qrels CSV
+- `CORPUS_PATH` — path to the JSONL corpus file (default: `data\nfcorpus\corpus.jsonl`)
+- `INVERTED_INDEX_PATH` — path to save/load the inverted index (default: `data\inverted_index.json`)
+- `QUERIES_PATH` — path to queries JSONL (default: `data\nfcorpus\queries.jsonl`)
+- `QRELS_PATH` — path to qrels CSV (default: `data\nfcorpus\qrels\merged_qrels.csv`)
 - `MODEL_PATH` — Hugging Face model ID or local path for spelling correction
 - `EVALUATION_RESULT_PATH` — path to save evaluation plots
 
@@ -89,17 +119,23 @@ Example `ENV.json` snippet:
 ```json
 {
   "CORPUS_PATH": "data/nfcorpus/corpus.jsonl",
-  "INVERTED_INDEX_PATH": "inverted_index.json",
+  "INVERTED_INDEX_PATH": "data/inverted_index.json",
   "QUERIES_PATH": "data/nfcorpus/queries.jsonl",
-  "QRELS_PATH": "data/nfcorpus/qrels/dev.csv",
+  "QRELS_PATH": "data/nfcorpus/qrels/merged_qrels.csv",
   "MODEL_PATH": "oliverguhr/spelling-correction-english-base",
-  "EVALUATION_RESULT_PATH": "results/mPrecision_at_k_and_mAP.png"
+  "EVALUATION_RESULT_PATH": "results/evaluation_scores.png"
 }
 ```
 
 ---
 
 ## Manual Steps (for debugging)
+
+0. Clone the repository:
+```cmd
+git clone https://github.com/justHman/VERTICAL_SEARCH_ENGINE.git
+cd VERTICAL_SEARCH_ENGINE
+```
 
 1. Create and activate the virtual environment:
 
@@ -125,14 +161,20 @@ Fallback (wheel):
 ```cmd
 pip install "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl"
 ```
+4. Config ENV.json following ENV.json.exp
 
-4. Build the inverted index:
+5. Build the inverted index:
 
 ```cmd
 python src\build_inverted_index.py
 ```
 
-5. Run the Streamlit app:
+6. Evaluate:
+```cmd
+python src\evaluator.py
+```
+
+7. Run the Streamlit app:
 
 ```cmd
 streamlit run app\streamlit_app.py
@@ -146,36 +188,6 @@ streamlit run app\streamlit_app.py
 - Transformers model fails to download: set `MODEL_PATH` in `ENV.json` to a local model directory or ensure your environment has internet access.
 - Missing packages after `pip install`: verify you installed into the activated virtualenv (`pip show <package>`).
 - If `set_up.bat` opens Notepad for `ENV.json`, edit and save the file before continuing the script.
-
----
-
-## Project Layout
-
-Repository tree (top-level):
-
-```text
-nf_search_engine/
-├─ app/
-│  └─ streamlit_app.py           # Streamlit UI
-├─ src/
-│  ├─ build_inverted_index.py    # inverted index builder
-│  ├─ searcher.py                # retrieval logic & snippet generation
-│  └─ evaluator.py               # evaluation & plotting utilities
-├─ utils/
-│  ├─ loader.py                  # data loaders
-│  ├─ processor.py               # text processing (spaCy + transformers)
-│  ├─ creator.py                 # index creator
-│  └─ caculator.py               # tf-idf, metrics
-├─ data/
-│  ├─ nfcorpus/
-│  │  ├─ corpus.jsonl
-│  │  └─ queries.jsonl
-│  └─ qrels/
-├─ results/                       # evaluation outputs and plots
-├─ ENV.json.exp / ENV.json        # example and active environment config
-├─ requirements.txt
-└─ set_up.bat
-```
 
 ---
 
