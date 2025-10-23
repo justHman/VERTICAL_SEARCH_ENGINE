@@ -1,0 +1,72 @@
+%% Natural Food Corpus Project Architecture Diagram
+%% Compatible with draw.io (Mermaid v9/v10)
+
+flowchart TD
+  %% Main execution flow (main.py)
+  M["main.py<br>(Entry point)"]
+  ENV["ENV.json<br>Config"]
+  MODEL["Transformer model<br>AutoTokenizer / AutoModelForSeq2SeqLM"]
+  CORPUS["Corpus<br>data/nfcorpus/corpus.jsonl"]
+  INDEX["Inverted index<br>inverted_index.json"]
+  QUERY["User query<br>Text input"]
+  CORRECT["correct_text()<br>utils.processor"]
+  TOKENS["Text2Tokens()<br>tokenize / lemmatize"]
+  SEARCH["search()<br>src.searcher"]
+  SNIPPET["get_in4()<br>snippet generation"]
+  OUTPUT["CLI / Streamlit UI<br>main.py or app output"]
+
+  %% Other scripts/modules
+  BUILDER["src/build_inverted_index.py<br>inverted_index_builder"]
+  CREATOR["utils.creator<br>inverted index builder"]
+  EVAL["src/evaluator.py<br>evaluate & visualize"]
+  LOADER["utils.loader<br>load_corpus / load_env / load_queries"]
+  PROC["utils.processor<br>correct_text, Text2Tokens"]
+  CALC["utils.caculator<br>tf-idf, Precision@k, AP"]
+
+  %% Data artifacts
+  QQUERIES["Queries JSONL<br>data/nfcorpus/queries.jsonl"]
+  QRELS["Qrels CSV<br>data/nfcorpus/qrels/merged_qrels.csv"]
+
+  %% Main connections
+  M --> ENV
+  M --> MODEL
+  M --> CORPUS
+  M --> INDEX
+  M --> QUERY
+
+  QUERY --> CORRECT
+  CORRECT --> TOKENS
+  TOKENS --> SEARCH
+  SEARCH --> SNIPPET
+  SNIPPET --> OUTPUT
+
+  %% Module responsibilities
+  LOADER --> CORPUS
+  LOADER --> INDEX
+  LOADER --> QQUERIES
+  LOADER --> ENV
+
+  PROC --> CORRECT
+  PROC --> TOKENS
+
+  CREATOR --> BUILDER
+  BUILDER --> INDEX
+
+  CALC --> SEARCH
+  EVAL --> CALC
+  EVAL --> LOADER
+  EVAL --> PROC
+  EVAL --> QRELS
+  EVAL --> QQUERIES
+
+  %% Optional app integration
+  APP["app/streamlit_app.py<br>Streamlit UI"]
+  APP --> LOADER
+  APP --> PROC
+  APP --> MODEL
+  APP --> SEARCH
+  APP --> OUTPUT
+
+  %% Styling (optional)
+  classDef module fill:#f9f,stroke:#333,stroke-width:1px;
+  class M,BUILDER,EVAL,APP module

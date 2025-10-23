@@ -24,6 +24,7 @@ A focused vertical search engine built for the Natural Food Corpus. This project
 - [Project Layout](#project-layout)
 - [Contributing & License](#contributing--license)
 
+---
 
 ## Expected Output
 

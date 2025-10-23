@@ -1,0 +1,54 @@
+flowchart LR
+
+  %% Main execution flow
+  subgraph Main["main.py"]
+    A1["Start"]
+    A2["Load ENV"]
+    A3["Load tokenizer & model"]
+    A4["Load corpus"]
+    A5["Load inverted index"]
+    A6["Input query"]
+    A7["Correct query"]
+    A8["Tokenize query"]
+    A9["Search"]
+    A10["Format results"]
+    A11["Print results"]
+    A12["End"]
+  end
+
+  %% Key modules/files
+  subgraph Modules["Key modules/files"]
+    M1["utils.loader<br>load_corpus, load_index, load_env"]
+    M2["utils.processor<br>correct_text, Text2Tokens"]
+    M3["src.searcher<br>search, get_in4"]
+    M4["transformers<br>AutoTokenizer, Seq2SeqLM"]
+    M5["corpus.jsonl<br>corpus docs"]
+    M6["inverted_index.json<br>inverted index"]
+  end
+
+  %% Main flow connections
+  A1 --> A2
+  A2 --> M1
+  M1 --> A4
+  M1 --> A5
+  A2 --> A3
+  A3 --> M4
+  A6 --> A7
+  A7 --> M2
+  A7 --> A8
+  A8 --> M2
+  A8 --> A9
+  A9 --> M3
+  M3 --> A10
+  A10 --> A11
+  A11 --> A12
+
+  %% Data flows
+  M1 --> M5
+  M1 --> M6
+  M6 --> M3
+  M5 --> M3
+
+  %% Styling for data objects
+  classDef dataObj fill:#f9f,stroke:#333,stroke-width:1px;
+  class M5,M6 dataObj
