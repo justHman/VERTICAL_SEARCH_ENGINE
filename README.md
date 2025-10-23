@@ -12,6 +12,19 @@ A focused vertical search engine built for the Natural Food Corpus. This project
 
 ---
 
+## Table of Contents
+
+- [Key Features](#key-features)
+- [Expected Output](#expected-output)
+- [System Requirements](#system-requirements)
+- [Quick Start (Windows)](#quick-start-windows)
+- [Environment Configuration](#environment-configuration)
+- [Manual Steps (for debugging)](#manual-steps-for-debugging)
+- [Troubleshooting](#troubleshooting)
+- [Project Layout](#project-layout)
+- [Contributing & License](#contributing--license)
+
+
 ## Expected Output
 
 - `inverted_index.json` generated in the repository root after running the index builder.
@@ -49,6 +62,7 @@ nf_search_engine/
 │  │  ├─ corpus.jsonl
 │  │  └─ queries.jsonl
 │  └─ qrels/
+│     └─ merged_qrels.csv
 ├─ results/                       # evaluation outputs and plots
 ├─ ENV.json.exp / ENV.json        # example and active environment config
 ├─ requirements.txt

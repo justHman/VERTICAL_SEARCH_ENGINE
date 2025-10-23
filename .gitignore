@@ -62,6 +62,12 @@ data/csv/data.csv
 results/
 data/csv
 
+# QRELS: ignore csv qrels files by default, but keep the merged_qrels.csv in nfcorpus
+# Ignore any CSVs inside any qrels directory
+data/**/qrels/*.csv
+# Except the canonical merged_qrels.csv we want to keep under version control
+!data/nfcorpus/qrels/merged_qrels.csv
+
 # Files
 main.py
 
