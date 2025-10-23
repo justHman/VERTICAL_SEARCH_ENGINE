@@ -166,13 +166,15 @@ if !SKIP_EVAL!==0 (
         echo [INFO] Running evaluation with !n_queries! queries...
         echo [INFO] This may take several minutes...
         
-        :: Create a temporary Python script to run evaluation with custom n_queries
-        echo import sys > temp_eval.py
-        echo sys.path.append^("."^) >> temp_eval.py
-        echo from src.evaluator import main as eval_main >> temp_eval.py
-        echo import os >> temp_eval.py
-        echo os.environ["N_QUERIES"] = "!n_queries!" >> temp_eval.py
-        echo eval_main^(^) >> temp_eval.py
+    :: Create a temporary Python script to run evaluation with custom n_queries
+    echo import sys > temp_eval.py
+    echo sys.path.append^("."^) >> temp_eval.py
+    echo from utils.loader import load_env >> temp_eval.py
+    echo env = load_env() >> temp_eval.py
+    echo env["N_QUERIES"] = "!n_queries!" >> temp_eval.py
+    echo import src.evaluator as evaluator >> temp_eval.py
+    echo evaluator.ENV = env >> temp_eval.py
+    echo evaluator.main^(^) >> temp_eval.py
         
         python temp_eval.py
         if !errorlevel! neq 0 (
