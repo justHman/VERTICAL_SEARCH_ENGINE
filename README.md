@@ -1,3 +1,5 @@
+<div align="center">
+
 # Natural Food Corpus — Vertical Search Engine
 
 A focused vertical search engine built for the Natural Food Corpus. This project provides a simple Streamlit web UI for document search backed by a TF-IDF based retrieval pipeline, tokenization and normalization via spaCy, and optional spell correction using a transformers model.
@@ -6,16 +8,7 @@ A focused vertical search engine built for the Natural Food Corpus. This project
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](#)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.x-orange.svg)](#)
 
----
-
-## Key Features
-
-- Build an inverted index from a JSONL corpus file.
-- TF-IDF based retrieval that combines title and body signals.
-- Streamlit web interface for interactive search and result inspection (`app/streamlit_app.py`).
-- Text processing pipeline using spaCy (tokenization, stopword removal, lemmatization).
-- Optional spelling correction using Hugging Face `transformers` models.
-- Evaluation utilities for mPrecision@k and mAP (`src/evaluator.py`).
+</div>
 
 ---
 
@@ -50,9 +43,10 @@ This repository includes an enhanced setup script `set_up.bat` with a beautiful 
 
 ### **Usage Options:**
 
-**Full workflow (recommended for first-time setup):**
+**Clone the repository and run full workflow (recommended for first-time setup):**
 ```cmd
-cd /d d:\Project\Code\nf_search_engine
+git clone https://github.com/justHman/VERTICAL_SEARCH_ENGINE.git
+cd VERTICAL_SEARCH_ENGINE
 set_up.bat
 ```
 
@@ -157,13 +151,31 @@ streamlit run app\streamlit_app.py
 
 ## Project Layout
 
-- `app/streamlit_app.py` — Streamlit UI
-- `src/build_inverted_index.py` — inverted index builder
-- `src/searcher.py` — retrieval logic & snippet generation
-- `src/evaluator.py` — evaluation & plotting utilities
-- `utils/` — helper modules: loader, processor (spaCy & transformers), creator, caculator
-- `data/` — corpus, queries, and qrels
-- `results/` — generated plots and outputs
+Repository tree (top-level):
+
+```text
+nf_search_engine/
+├─ app/
+│  └─ streamlit_app.py           # Streamlit UI
+├─ src/
+│  ├─ build_inverted_index.py    # inverted index builder
+│  ├─ searcher.py                # retrieval logic & snippet generation
+│  └─ evaluator.py               # evaluation & plotting utilities
+├─ utils/
+│  ├─ loader.py                  # data loaders
+│  ├─ processor.py               # text processing (spaCy + transformers)
+│  ├─ creator.py                 # index creator
+│  └─ caculator.py               # tf-idf, metrics
+├─ data/
+│  ├─ nfcorpus/
+│  │  ├─ corpus.jsonl
+│  │  └─ queries.jsonl
+│  └─ qrels/
+├─ results/                       # evaluation outputs and plots
+├─ ENV.json.exp / ENV.json        # example and active environment config
+├─ requirements.txt
+└─ set_up.bat
+```
 
 ---
 
