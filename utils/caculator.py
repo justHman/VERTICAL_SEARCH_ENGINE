@@ -27,6 +27,36 @@ def compute_tfidf(term, inverted_index, total_docs, alpha=0.7):
 
     return tfidf_scores
 
+def Precision_at_k(relevant_docs, retrieved_docs, k):
+    if k == 0:
+        return 0.0
+    
+    k = min(k, len(retrieved_docs))   # giới hạn theo số kết quả thực tế
+    if k == 0:
+        return 0.0
+        
+    retrieved_docs_at_k = list(retrieved_docs)[:k]
+    matched_docs = sum(1 for doc in retrieved_docs_at_k if doc in relevant_docs)
+    precision_at_k = matched_docs / k
+    return precision_at_k
+
+def AP(relevant_docs, retrieved_docs):
+    if not relevant_docs:
+        return 0.0
+    
+    total_p = 0.0
+    relevant_retrieved = 0.0
+    for k, retrieved_doc in enumerate(retrieved_docs, start=1):
+        if retrieved_doc not in relevant_docs:
+            continue
+
+        relevant_retrieved += 1
+        p_at_k = relevant_retrieved / k
+        total_p += p_at_k
+    
+    average_precision = total_p / len(relevant_docs) 
+    return average_precision
+
 if __name__ == "__main__":
     
     inverted_index = {

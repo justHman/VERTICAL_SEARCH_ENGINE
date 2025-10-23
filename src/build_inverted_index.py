@@ -2,11 +2,12 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/../')
 
-from utils.loader import load_corpus
+from utils.loader import load_corpus, load_env
 from utils.creator import inverted_index_builder, fast_inverted_index_builder
+ENV = load_env()
 
 def main():
-    corpus_path = r'data\nfcorpus\corpus.jsonl'
+    corpus_path = ENV["CORPUS_PATH"]
     save_path = 'inverted_index.json'
 
     corpus = load_corpus(corpus_path)

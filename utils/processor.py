@@ -1,8 +1,26 @@
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/../')
+
 import re
 import unicodedata
 import spacy
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+from utils.loader import load_env
+ENV = load_env()
 
 nlp = spacy.load("en_core_web_sm")
+
+model_path = ENV["MODEL_PATH"]
+if not os.path.exists(model_path):
+    model_path = "oliverguhr/spelling-correction-english-base"
+tokenizer = AutoTokenizer.from_pretrained(model_path)
+model = AutoModelForSeq2SeqLM.from_pretrained(model_path) 
+
+def correct_text(text):
+    inputs = tokenizer([text], return_tensors="pt")
+    outputs = model.generate(**inputs)
+    return tokenizer.decode(outputs[0], skip_special_tokens=True)
 
 def normalize_text(text):
     # Loại bỏ escape unicode như \u2009, \u00a9, ...
@@ -29,7 +47,8 @@ def lemmatize(tokens):
     return [nlp(token)[0].lemma_ for token in tokens]
 
 def Text2Tokens(text):
-    normalized = normalize_text(text)
+    corrected = correct_text(text)
+    normalized = normalize_text(corrected)
     tokens = tokenize(normalized)
     tokens_no_stopwords = remove_stopwords(tokens)
     lemmas = lemmatize(tokens_no_stopwords)

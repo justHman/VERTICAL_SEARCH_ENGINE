@@ -1,0 +1,27 @@
+# Core libraries for text processing and ML
+numpy==1.26.4
+pandas==2.3.2
+spacy==3.8.7
+transformers==4.56.2
+
+# Streamlit for web interface
+streamlit==1.50.0
+
+# Data visualization
+matplotlib==3.10.7
+
+# Progress bar for long-running tasks
+tqdm==4.67.1
+
+# PyTorch for transformers (required by transformers)
+torch==2.8.0
+
+# Spacy English language model
+en_core_web_sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl
+
+# Additional dependencies that may be required by the above packages
+tokenizers==0.22.1
+huggingface-hub==0.35.3
+regex==2025.9.18
+click==8.3.0
+pillow==11.3.0
