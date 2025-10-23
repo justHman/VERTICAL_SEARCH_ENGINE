@@ -47,8 +47,7 @@ def lemmatize(tokens):
     return [nlp(token)[0].lemma_ for token in tokens]
 
 def Text2Tokens(text):
-    corrected = correct_text(text)
-    normalized = normalize_text(corrected)
+    normalized = normalize_text(text)
     tokens = tokenize(normalized)
     tokens_no_stopwords = remove_stopwords(tokens)
     lemmas = lemmatize(tokens_no_stopwords)

@@ -4,7 +4,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/../')
 
 import numpy as np
 import re
-from utils.processor import Text2Tokens
+from utils.processor import Text2Tokens, correct_text
 from utils.caculator import compute_tfidf
 from utils.processor import merge_ranges
 from utils.loader import load_corpus, load_inverted_index, load_env
@@ -115,7 +115,8 @@ def main():
     query = input("Enter your search query: ")
     if not query:
         query = "statin effects on cholesterol"
-    tokens = Text2Tokens(query)
+    corrected_query = correct_text(query)
+    tokens = Text2Tokens(corrected_query)
 
     results = search(tokens, inverted_index, total_docs, n=10)
 
