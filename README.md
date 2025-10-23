@@ -117,7 +117,7 @@ set_up.bat --no-run --skip-eval
 
 ---
 
-## Environment Configuration
+## **Environment Configuration**
 
 The project uses an `ENV.json` configuration file (example provided as `ENV.json.exp`). Typical fields:
 
@@ -176,6 +176,7 @@ Fallback (wheel):
 pip install "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl"
 ```
 4. Config ENV.json following ENV.json.exp
+
 Example `ENV.json` snippet:
 
 ```json
