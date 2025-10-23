@@ -176,6 +176,18 @@ Fallback (wheel):
 pip install "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl"
 ```
 4. Config ENV.json following ENV.json.exp
+Example `ENV.json` snippet:
+
+```json
+{
+  "CORPUS_PATH": "data/nfcorpus/corpus.jsonl",
+  "INVERTED_INDEX_PATH": "data/inverted_index.json",
+  "QUERIES_PATH": "data/nfcorpus/queries.jsonl",
+  "QRELS_PATH": "data/nfcorpus/qrels/merged_qrels.csv",
+  "MODEL_PATH": "oliverguhr/spelling-correction-english-base",
+  "EVALUATION_RESULT_PATH": "results/evaluation_scores.png"
+}
+```
 
 5. Build the inverted index:
 
