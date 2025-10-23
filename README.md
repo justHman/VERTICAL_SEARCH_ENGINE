@@ -14,14 +14,13 @@ A focused vertical search engine built for the Natural Food Corpus. This project
 
 ## Table of Contents
 
-- [Key Features](#key-features)
 - [Expected Output](#expected-output)
 - [System Requirements](#system-requirements)
+- [Project Layout](#project-layout)
 - [Quick Start (Windows)](#quick-start-windows)
 - [Environment Configuration](#environment-configuration)
 - [Manual Steps (for debugging)](#manual-steps-for-debugging)
 - [Troubleshooting](#troubleshooting)
-- [Project Layout](#project-layout)
 - [Contributing & License](#contributing--license)
 
 ---
