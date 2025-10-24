@@ -1,4 +1,6 @@
 @echo off
+rem Use UTF-8 code page so Unicode box-drawing/emoji render correctly in modern terminals
+chcp 65001 >nul
 title Natural Food Corpus Search Engine - Setup
 mode con: cols=100 lines=30
 color 0A
@@ -15,10 +17,10 @@ if "%2"=="--skip-eval" set SKIP_EVAL=1
 
 :: Header
 echo.
-echo ╔══════════════════════════════════════════════════════════════════════════════════════╗
-echo ║                     🥗 Natural Food Corpus Search Engine 🔍                         ║
-echo ║                              Automated Setup Script                                  ║
-echo ╚══════════════════════════════════════════════════════════════════════════════════════╝
+echo ══════════════════════════════════════════════════════════════════════════════════════
+echo                      🥗 Natural Food Corpus Search Engine 🔍                          
+echo                               Automated Setup Script                                  
+echo ══════════════════════════════════════════════════════════════════════════════════════
 echo.
 echo Usage: set_up.bat [--no-run] [--skip-eval]
 echo   --no-run    : Setup and build but do NOT launch Streamlit
