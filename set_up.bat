@@ -27,7 +27,7 @@ echo.
 
 :: Step 1: Virtual Environment
 echo ┌─────────────────────────────────────────────────────────────────────────────────────┐
-echo │ STEP 1: Virtual Environment Setup                                                  │
+echo │ STEP 1: Virtual Environment Setup                                                   │
 echo └─────────────────────────────────────────────────────────────────────────────────────┘
 if not exist venv (
     echo [INFO] Creating virtual environment 'venv'...
@@ -56,19 +56,14 @@ echo.
 
 :: Step 2: Dependencies
 echo ┌─────────────────────────────────────────────────────────────────────────────────────┐
-echo │ STEP 2: Installing Dependencies                                                    │
+echo │ STEP 2: Installing Dependencies                                                     │
 echo └─────────────────────────────────────────────────────────────────────────────────────┘
 set REQ_FILE=requirements.txt
 if not exist !REQ_FILE! (
-    if exist requirements_optimized.txt (
-        echo [WARN] requirements.txt not found. Using requirements_optimized.txt instead.
-        set REQ_FILE=requirements_optimized.txt
-    ) else (
-        echo [ERROR] Neither requirements.txt nor requirements_optimized.txt found.
-        echo [HELP] Please provide a requirements file and re-run.
-        pause
-        exit /b 1
-    )
+    echo [ERROR] requirements.txt not found.
+    echo [HELP] Please provide a requirements file and re-run.
+    pause
+    exit /b 1
 )
 
 echo [INFO] Installing Python packages from !REQ_FILE!...
@@ -101,7 +96,7 @@ echo.
 
 :: Step 3: Environment Configuration
 echo ┌─────────────────────────────────────────────────────────────────────────────────────┐
-echo │ STEP 3: Environment Configuration                                                  │
+echo │ STEP 3: Environment Configuration                                                   │
 echo └─────────────────────────────────────────────────────────────────────────────────────┘
 if not exist ENV.json (
     if exist ENV.json.exp (
@@ -138,7 +133,7 @@ echo.
 
 :: Step 4: Build Inverted Index
 echo ┌─────────────────────────────────────────────────────────────────────────────────────┐
-echo │ STEP 4: Building Inverted Index                                                    │
+echo │ STEP 4: Building Inverted Index                                                     │
 echo └─────────────────────────────────────────────────────────────────────────────────────┘
 echo [INFO] Building inverted index from corpus...
 echo [INFO] This may take a few minutes depending on corpus size...
@@ -155,7 +150,7 @@ echo.
 :: Step 5: Optional Evaluation
 if !SKIP_EVAL!==0 (
     echo ┌─────────────────────────────────────────────────────────────────────────────────────┐
-    echo │ STEP 5: Evaluation ^(Optional^)                                                      │
+    echo │ STEP 5: Evaluation ^(Optional^)                                                     │
     echo └─────────────────────────────────────────────────────────────────────────────────────┘
     echo [INFO] Do you want to run evaluation? ^(y/n^):
     set /p run_eval="> "
@@ -202,7 +197,7 @@ if !NO_RUN!==1 (
 )
 
 echo ┌─────────────────────────────────────────────────────────────────────────────────────┐
-echo │ STEP 6: Launching Streamlit Application                                            │
+echo │ STEP 6: Launching Streamlit Application                                             │
 echo └─────────────────────────────────────────────────────────────────────────────────────┘
 echo [INFO] Starting Streamlit web interface...
 echo [INFO] The app will open in your default browser at http://localhost:8501
