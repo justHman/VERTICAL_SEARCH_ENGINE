@@ -59,7 +59,6 @@ data/*.db
 logs/
 *.log
 data/csv/data.csv
-results/
 data/csv
 
 # QRELS: ignore csv qrels files by default, but keep the merged_qrels.csv in nfcorpus
@@ -69,7 +68,7 @@ data/**/qrels/*.csv
 !data/nfcorpus/qrels/merged_qrels.csv
 
 # Files
-main.py
+
 
 # Models / checkpoints
 models/
