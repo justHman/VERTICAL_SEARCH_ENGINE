@@ -2,7 +2,7 @@
 
 # Natural Food Corpus — Vertical Search Engine
 
-<img src="results\images\wordcloud_corpus.png" alt="Natural Food Corpus Word Cloud" width="500">
+<img src="results\images\wordcloud_corpus.png" alt="Natural Food Corpus Word Cloud" width="700">
 
 A focused vertical search engine built for the Natural Food Corpus. This project provides a simple Streamlit web UI for document search backed by a TF-IDF based retrieval pipeline, tokenization and normalization via spaCy, and optional spell correction using a transformers model.
 
@@ -17,7 +17,7 @@ A focused vertical search engine built for the Natural Food Corpus. This project
 ## Demo
 
 <div align="center">
-    <img src="results\gif\demo.gif" alt="Search Engine Demo" width="500">
+    <img src="results\gif\demo.gif" alt="Search Engine Demo" width="700">
 </div>
 
 ---
