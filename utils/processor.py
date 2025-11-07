@@ -66,7 +66,7 @@ def merge_ranges(ranges):
     return merged
 
 if __name__ == "__main__":
-    sample_text = "Hello, World! This is a test text with emoji 😊 @   and unicode \\u2009 characters."
+    sample_text = "Hello, Hello, World! This is a test text with emoji 😊 @   and unicode \\u2009 characters."
     processed = Text2Tokens(sample_text)
     print("Original Text:", sample_text)
     print("Processed Tokens:", processed)

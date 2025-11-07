@@ -14,13 +14,14 @@ from utils.caculator import Precision_at_k, AP
 ENV = load_env()
 
 
-def evaluate(df, inverted_index, total_docs, queries, n_queries):
+def evaluate(df, inverted_index, total_docs, queries, n_queries, range_k=range(1,20)):
     querie_ids = df['query_id'].unique()[:n_queries]
     scores = {}
 
-    for k in tqdm(range(1, 20), desc='k loop'):
+    mAP_check = False
+    for k in tqdm(range_k, desc='k loop'):
         P_at_k = []
-        AP_scores = [] if k == 1 else None 
+        AP_scores = None if mAP_check else [] 
         for query_id in tqdm(querie_ids, desc=f'queries@k={k}', leave=False):
             relevant_docs = df[df["query_id"] == query_id]["corpus_id"].tolist()
             relevant_docs = list(set(relevant_docs))
@@ -39,11 +40,12 @@ def evaluate(df, inverted_index, total_docs, queries, n_queries):
 
         if AP_scores is not None:
             mAP = sum(AP_scores) / n_queries
+            mAP_check = True
 
     scores["mAP"] = mAP
     return scores
 
-def visualize(scores, n_queries, save_path='results/mPrecision_at_k_and_mAP.png'):
+def visualize(scores, n_queries, save_path=None):
     mprec = scores.get("mPrecision@k", {})
     ks = sorted(mprec.keys())
     vals = [mprec[k] for k in ks]
@@ -83,7 +85,8 @@ def visualize(scores, n_queries, save_path='results/mPrecision_at_k_and_mAP.png'
 
         plt.tight_layout()
         os.makedirs('results', exist_ok=True)
-        plt.savefig(save_path, dpi=200, bbox_inches='tight')
+        if save_path:
+            plt.savefig(save_path, dpi=200, bbox_inches='tight')
         plt.show()
 
 def main():
@@ -106,9 +109,9 @@ def main():
     else:
         n_queries = len(df['query_id'].unique())
 
-    scores = evaluate(df, inverted_index, total_docs, queries, n_queries)
+    scores = evaluate(df, inverted_index, total_docs, queries, n_queries, range_k=range(10, 11))
     print(f"Evaluation completed with {n_queries} queries.")
-    visualize(scores, n_queries, save_path=ENV["EVALUATION_RESULT_PATH"])
+    visualize(scores, n_queries)
 
 if __name__ == "__main__":
     main()

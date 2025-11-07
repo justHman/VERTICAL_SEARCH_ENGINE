@@ -13,22 +13,31 @@ ENV = load_env()
 def search(tokens, inverted_index, total_docs, n=None, alpha=0.7):
     results = {}
     for token in tokens:
+        if token in results:
+            continue
+
         scores = compute_tfidf(token, inverted_index, total_docs, alpha=alpha)
         if not scores:
             continue
+
         results[token] = scores
 
-    normalized = {}
-    for term, doc_scores in results.items():
-        vals = np.array(list(doc_scores.values()))
-        min_v, max_v = vals.min(), vals.max()
-        normalized[term] = {d: (v - min_v)/(max_v - min_v + 1e-9) for d, v in doc_scores.items()}
+    # normalized = {}
+    # for term, doc_scores in results.items():
+    #     vals = np.array(list(doc_scores.values()))
+    #     min_v, max_v = vals.min(), vals.max()
+    #     normalized[term] = {d: (v - min_v)/(max_v - min_v + 1e-9) for d, v in doc_scores.items()}
+
+    # for term, doc_scores in normalized.items():
+    #         for doc_id, score in doc_scores.items():
+    #             if doc_id == "MED-10":
+    #                 print(term, doc_id, score)
 
     combined = {}
-    for term in normalized:
-        for doc, val in normalized[term].items():
+    for term in results:
+        for doc, val in results[term].items():
             combined[doc] = combined.get(doc, 0) + val
-
+                
     if not combined:
         return {}
     
