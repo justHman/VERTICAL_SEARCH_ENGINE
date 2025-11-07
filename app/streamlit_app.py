@@ -290,7 +290,7 @@ with col2:
     
     col_search1, col_search2, col_search3 = st.columns([3, 1, 3])
     with col_search2:
-        search_button = st.button("🔎 Search", type="primary", use_container_width=True)
+        search_button = st.button("🔎", type="primary", use_container_width=True)
     
     # Perform search
     if search_button and query:

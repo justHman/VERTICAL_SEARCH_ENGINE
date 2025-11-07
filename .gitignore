@@ -60,6 +60,7 @@ logs/
 *.log
 data/csv/data.csv
 data/csv
+results/videos
 
 # QRELS: ignore csv qrels files by default, but keep the merged_qrels.csv in nfcorpus
 # Ignore any CSVs inside any qrels directory

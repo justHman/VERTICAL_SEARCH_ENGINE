@@ -2,12 +2,22 @@
 
 # Natural Food Corpus — Vertical Search Engine
 
+<img src="results\images\wordcloud_corpus.png" alt="Natural Food Corpus Word Cloud" width="500">
+
 A focused vertical search engine built for the Natural Food Corpus. This project provides a simple Streamlit web UI for document search backed by a TF-IDF based retrieval pipeline, tokenization and normalization via spaCy, and optional spell correction using a transformers model.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](#)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](#)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.x-orange.svg)](#)
 
+</div>
+
+---
+
+## Demo
+
+<div align="center">
+    <img src="results\gif\demo.gif" alt="Search Engine Demo" width="500">
 </div>
 
 ---
