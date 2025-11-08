@@ -2,9 +2,7 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/../')
 
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.ticker import FuncFormatter
+from src.visualize import visualize_evaluate, visualize_alpha_scores
 from tqdm import tqdm
 import pandas as pd
 from searcher import search
@@ -14,7 +12,7 @@ from utils.caculator import Precision_at_k, AP
 ENV = load_env()
 
 
-def evaluate(df, inverted_index, total_docs, queries, n_queries, range_k=range(1,20)):
+def evaluate(df, inverted_index, total_docs, queries, n_queries, range_k=range(1,20), alpha=0.8):
     querie_ids = df['query_id'].unique()[:n_queries]
     scores = {}
 
@@ -28,7 +26,7 @@ def evaluate(df, inverted_index, total_docs, queries, n_queries, range_k=range(1
 
             query = queries[query_id]
             tokens = Text2Tokens(query)
-            results = search(tokens, inverted_index, total_docs)
+            results = search(tokens, inverted_index, total_docs, alpha=alpha)
             retrieved_docs = results.keys()
             P_at_k.append(Precision_at_k(relevant_docs, retrieved_docs, k))
 
@@ -43,51 +41,26 @@ def evaluate(df, inverted_index, total_docs, queries, n_queries, range_k=range(1
             mAP_check = True
 
     scores["mAP"] = mAP
-    return scores
+    return scores 
 
-def visualize(scores, n_queries, save_path=None):
-    mprec = scores.get("mPrecision@k", {})
-    ks = sorted(mprec.keys())
-    vals = [mprec[k] for k in ks]
-    mAP = scores.get("mAP", 0.0)
+def find_best_alpha(df, inverted_index, total_docs, queries, n_queries, alphas, range_k=range(10, 11)):
+    alpha_scores = {}
 
-    if not ks:
-        print("No data to plot (ks empty).")
-    else:
-        fig = plt.figure(figsize=(12,6))
-        ax = fig.add_subplot(1,1,1)
+    for alpha in alphas:
+        print(f"Evaluating alpha={alpha}...")
+        scores = evaluate(df, inverted_index, total_docs, queries, n_queries, range_k=range_k, alpha=alpha)
+        precision_at_10 = scores['mPrecision@k'].get(10, 0.0)  # Lấy Precision@10, mặc định là 0.0 nếu không có
+        print(f"Precision@10={precision_at_10:.4f}, mAP={scores['mAP']:.4f}")
+        alpha_scores[alpha] = scores
 
-        ax.plot(ks, vals, marker='o', linewidth=2)
-        ax.set_xlabel('k')
-        ax.set_ylabel('mPrecision@k')
-        ax.set_title(f"mPrecision@k (n_queries={n_queries}) — mAP={mAP:.4f}")
-        ax.grid(alpha=0.3)
-        ax.yaxis.set_major_formatter(FuncFormatter(lambda y, _: f"{y:.4f}"))
-
-        step = max(1, (max(ks) - min(ks)) // 20)
-        ax.set_xticks(np.arange(min(ks), max(ks)+1, step))
-
-        max_idx = int(np.argmax(vals))
-        max_k = ks[max_idx]
-        max_v = vals[max_idx]
-        ax.scatter([max_k], [max_v], color='red', zorder=5)
-        ax.annotate(f"{max_v:.4f} @k={max_k}", (max_k, max_v),
-                    xytext=(max_k, max_v + 0.01),
-                    arrowprops=dict(arrowstyle="->", color="red"))
-
-        ax_bar = fig.add_axes([0.75, 0.58, 0.18, 0.28])   
-        ax_bar.bar(['mAP'], [mAP], color='C1')
-        ax_bar.set_ylim(0, 1)
-        ax_bar.set_ylabel('')
-        ax_bar.set_title('mAP', fontsize=10)
-        ax_bar.yaxis.set_major_formatter(FuncFormatter(lambda y, _: f"{y:.4f}"))
-        ax_bar.text(0, mAP + 0.01, f"{mAP:.4f}", ha='center', va='bottom', fontsize=9)
-
-        plt.tight_layout()
-        os.makedirs('results', exist_ok=True)
-        if save_path:
-            plt.savefig(save_path, dpi=200, bbox_inches='tight')
-        plt.show()
+    # Find the alpha with the highest mAP
+    best_alpha_mAP = max(alpha_scores, key=lambda a: alpha_scores[a]["mAP"])
+    best_alpha_precision = max(alpha_scores, key=lambda a: alpha_scores[a]["mPrecision@k"].get(10, 0.0))
+    precision_at_10 = alpha_scores[best_alpha_precision]['mPrecision@k'].get(10, 0.0)
+    print(f"Best alpha by Precision@10: {best_alpha_precision} with Precision@10={precision_at_10:.4f}")
+    print(f"Best alpha by mAP: {best_alpha_mAP} with mAP={alpha_scores[best_alpha_mAP]['mAP']:.4f}")
+    
+    return best_alpha_mAP, best_alpha_precision, alpha_scores
 
 def main():
     df = pd.read_csv(ENV["QRELS_PATH"])
@@ -109,9 +82,18 @@ def main():
     else:
         n_queries = len(df['query_id'].unique())
 
-    scores = evaluate(df, inverted_index, total_docs, queries, n_queries, range_k=range(10, 11))
+    scores = evaluate(df, inverted_index, total_docs, queries, n_queries, range_k=range(1, 20))
     print(f"Evaluation completed with {n_queries} queries.")
-    visualize(scores, n_queries)
+    visualize_evaluate(scores, n_queries, save_path='results/images/optimized_evaluation_1.png')
+
+    # n_queries = len(queries)  # Số lượng truy vấn để đánh giá
+    # alphas = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]  # Các giá trị alpha cần thử nghiệm
+
+    # # Tìm alpha tốt nhất
+    # best_alpha, best_alpha_precision, alpha_scores = find_best_alpha(df, inverted_index, total_docs, queries, n_queries, alphas)
+
+    # # Trực quan hóa kết quả
+    # visualize_alpha_scores(alpha_scores, save_path="results/images/alpha_scores.png")
 
 if __name__ == "__main__":
     main()

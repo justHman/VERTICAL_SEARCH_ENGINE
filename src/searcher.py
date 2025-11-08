@@ -10,7 +10,7 @@ from utils.processor import merge_ranges
 from utils.loader import load_corpus, load_inverted_index, load_env
 ENV = load_env()
 
-def search(tokens, inverted_index, total_docs, n=None, alpha=0.7):
+def search(tokens, inverted_index, total_docs, n=None, alpha=0.8):
     results = {}
     for token in tokens:
         if token in results:
