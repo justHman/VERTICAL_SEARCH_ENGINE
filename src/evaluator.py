@@ -70,30 +70,30 @@ def main():
     total_docs = len(corpus)
 
     # Check for environment variable N_QUERIES from batch script
-    n_queries_env = ENV["N_QUERIES"]
-    if n_queries_env:
-        try:
-            n_queries = int(n_queries_env)
-            n_queries = min(n_queries, len(df['query_id'].unique()))  # Don't exceed available queries
-            print(f"Using {n_queries} queries for evaluation (from environment variable)")
-        except ValueError:
-            print(f"Invalid N_QUERIES value: {n_queries_env}. Using default.")
-            n_queries = len(df['query_id'].unique())
-    else:
-        n_queries = len(df['query_id'].unique())
+    # n_queries_env = ENV["N_QUERIES"]
+    # if n_queries_env:
+    #     try:
+    #         n_queries = int(n_queries_env)
+    #         n_queries = min(n_queries, len(df['query_id'].unique()))  # Don't exceed available queries
+    #         print(f"Using {n_queries} queries for evaluation (from environment variable)")
+    #     except ValueError:
+    #         print(f"Invalid N_QUERIES value: {n_queries_env}. Using default.")
+    #         n_queries = len(df['query_id'].unique())
+    # else:
+    #     n_queries = len(df['query_id'].unique())
 
-    scores = evaluate(df, inverted_index, total_docs, queries, n_queries, range_k=range(1, 20))
-    print(f"Evaluation completed with {n_queries} queries.")
-    visualize_evaluate(scores, n_queries, save_path='results/images/optimized_evaluation_1.png')
+    # scores = evaluate(df, inverted_index, total_docs, queries, n_queries, range_k=range(1, 20))
+    # print(f"Evaluation completed with {n_queries} queries.")
+    # visualize_evaluate(scores, n_queries, save_path='results/images/optimized_evaluation_1.png')
 
-    # n_queries = len(queries)  # Số lượng truy vấn để đánh giá
-    # alphas = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]  # Các giá trị alpha cần thử nghiệm
+    n_queries = len(queries)  # Số lượng truy vấn để đánh giá
+    alphas = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]  # Các giá trị alpha cần thử nghiệm
 
-    # # Tìm alpha tốt nhất
-    # best_alpha, best_alpha_precision, alpha_scores = find_best_alpha(df, inverted_index, total_docs, queries, n_queries, alphas)
+    # Tìm alpha tốt nhất
+    best_alpha, best_alpha_precision, alpha_scores = find_best_alpha(df, inverted_index, total_docs, queries, n_queries, alphas)
 
-    # # Trực quan hóa kết quả
-    # visualize_alpha_scores(alpha_scores, save_path="results/images/alpha_scores.png")
+    # Trực quan hóa kết quả
+    visualize_alpha_scores(alpha_scores, save_path="results/images/alpha_scores.png")
 
 if __name__ == "__main__":
     main()
