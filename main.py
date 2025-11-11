@@ -1,5 +1,5 @@
 from utils.loader import load_corpus, load_inverted_index, load_env
-from src.searcher import search, get_in4
+from src.searcher import tfidf_search, get_in4
 from utils.processor import Text2Tokens, correct_text
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 import os
@@ -21,7 +21,7 @@ if __name__ == "__main__":
     corrected_query = correct_text(query)
     tokens = Text2Tokens(corrected_query)
 
-    results = search(tokens, inverted_index, total_docs, n=10)
+    results = tfidf_search(tokens, inverted_index, total_docs, n=10)
 
     max_chars = 300
     window = 11

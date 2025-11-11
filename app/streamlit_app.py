@@ -6,7 +6,7 @@ import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/../')
 
 from utils.loader import load_corpus, load_inverted_index, load_env
-from src.searcher import search, get_in4
+from src.searcher import tfidf_search, get_in4
 from utils.processor import Text2Tokens, correct_text, normalize_text
 ENV = load_env()
 
@@ -303,7 +303,7 @@ with col2:
             if not tokens:
                 st.warning("⚠️ Please enter a valid search query.")
             else:
-                results = search(
+                results = tfidf_search(
                     tokens,
                     st.session_state.inverted_index,
                     st.session_state.total_docs,

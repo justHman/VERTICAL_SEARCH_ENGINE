@@ -29,5 +29,6 @@ def load_queries(path):
     return queries
 
 if __name__ == "__main__":
-    env = load_env()
-    print(env)
+    corpus = load_corpus(r"data\nfcorpus\corpus.jsonl")
+    for doc in corpus[:5]:
+        print(doc)

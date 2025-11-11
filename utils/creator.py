@@ -43,7 +43,6 @@ def inverted_index_builder(corpus, save_path=None):
             json.dump(inverted_index, f, ensure_ascii=False, indent=2)
     return inverted_index
 
-
 def fast_inverted_index_builder(corpus, save_path=None, max_workers=None):
     inverted_index = {}
 
@@ -95,3 +94,4 @@ def fast_inverted_index_builder(corpus, save_path=None, max_workers=None):
         with open(save_path, 'w', encoding='utf-8') as f:
             json.dump(inverted_index, f, ensure_ascii=False, indent=2)
     return inverted_index
+

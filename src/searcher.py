@@ -3,14 +3,75 @@ import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/../')
 
 import numpy as np
+import torch
+import time
+import pickle
 import re
+import argparse
 from utils.processor import Text2Tokens, correct_text
 from utils.caculator import compute_tfidf
 from utils.processor import merge_ranges
 from utils.loader import load_corpus, load_inverted_index, load_env
+import faiss
+from sentence_transformers import SentenceTransformer
 ENV = load_env()
 
-def search(tokens, inverted_index, total_docs, n=None, alpha=0.8):
+class semantic_search:
+    def __init__(self, corpus, model_name='all-MiniLM-L6-v2'):
+        self.model = SentenceTransformer(model_name).to(device='cuda' if torch.cuda.is_available() else 'cpu')
+        self.index = None
+        self.corpus = corpus
+        self.documents = []
+    
+    def build_index(self, documents):
+        """Xây dựng vector index"""
+        self.documents = documents
+        
+        # Tạo embeddings
+        embeddings = self.model.encode(documents)
+        
+        # Khởi tạo FAISS index
+        dimension = embeddings.shape[1]
+        self.index = faiss.IndexFlatIP(dimension)  # Inner Product (tương đương cosine)
+        
+        # Chuẩn hóa vectors để cosine similarity = inner product
+        faiss.normalize_L2(embeddings)
+        self.index.add(embeddings.astype('float32'))
+
+    def save_index(self, filepath):
+        faiss.write_index(self.index, filepath)
+        with open(filepath.replace('.index', '_docs.pkl'), 'wb') as f:
+            pickle.dump(self.documents, f)
+
+    def load_index(self, filepath):
+        self.index = faiss.read_index(filepath)
+        with open(filepath.replace('.index', '_docs.pkl'), 'rb') as f:
+            self.documents = pickle.load(f)
+    
+    def search(self, query, top_k=None):
+        """Tìm kiếm ngữ nghĩa"""
+        if self.index is None:
+            raise ValueError("Chưa build index!")
+        
+        # Embed query
+        query_embedding = self.model.encode([query])
+        faiss.normalize_L2(query_embedding)
+        
+        # Tìm kiếm
+        if top_k:
+            similarities, indices = self.index.search(query_embedding.astype('float32'), top_k)
+        else:
+            total_vectors = self.index.ntotal  
+            similarities, indices = self.index.search(query_embedding.astype('float32'), total_vectors)
+        
+        results = {}
+        for score, idx in zip(similarities[0], indices[0]):
+            doc_id = self.corpus[idx]['_id']
+            results[doc_id] = float(score)
+
+        return results
+
+def tfidf_search(tokens, inverted_index, total_docs, n=None, alpha=0.8):
     results = {}
     for token in tokens:
         if token in results:
@@ -50,7 +111,7 @@ def search(tokens, inverted_index, total_docs, n=None, alpha=0.8):
         sorted_scores = sorted(final_scores.keys(), key=lambda doc_id: final_scores[doc_id], reverse=True)
     return {doc_id: final_scores[doc_id] for doc_id in sorted_scores}
 
-def get_in4(doc_id, id2doc, inverted_index, tokens, max_chars=300, window=11):
+def get_in4(doc_id, id2doc, inverted_index, query, max_chars=300, window=11):
     try:
         title = id2doc[doc_id].get('title', '')
         url = id2doc[doc_id].get('metadata', {}).get('url', '')
@@ -62,6 +123,7 @@ def get_in4(doc_id, id2doc, inverted_index, tokens, max_chars=300, window=11):
         raise
     
     position_list = []
+    tokens = Text2Tokens(query)
     for term in tokens:
         try:
             # Check if term exists in inverted_index and if doc_id has this term
@@ -116,27 +178,90 @@ def get_in4(doc_id, id2doc, inverted_index, tokens, max_chars=300, window=11):
 
     return title, snippet_text, url
 
-def main():
-    corpus = load_corpus(ENV["CORPUS_PATH"])
-    inverted_index = load_inverted_index(ENV["INVERTED_INDEX_PATH"])
-    total_docs = len(corpus)
+def main(args):
+    corpus = load_corpus(args.corpus_path)
+    inverted_index = load_inverted_index(args.inverted_index_path)
 
-    query = input("Enter your search query: ")
-    if not query:
-        query = "statin effects on cholesterol"
+    query = args.query
     corrected_query = correct_text(query)
-    tokens = Text2Tokens(corrected_query)
 
-    results = search(tokens, inverted_index, total_docs, n=10)
+    mode = args.mode if args.mode else input("Choose search mode (semantic/tfidf) [tfidf]: ").strip().lower()
+    if mode == "semantic":
+        semantic_search_engine = semantic_search(corpus)
+        if args.index_path:
+            semantic_search_engine.load_index(args.index_path)
+        else:
+            documents = [doc.get('text', '') for doc in corpus]
+            semantic_search_engine.build_index(documents)
+
+        start = time.time()
+        results = semantic_search_engine.search(corrected_query, top_k=args.top_k)
+        end = time.time()
+
+    else:
+        total_docs = len(corpus)
+        
+        start = time.time()
+        tokens = Text2Tokens(corrected_query)
+        results = tfidf_search(tokens, inverted_index, total_docs, n=args.top_k)
+        end = time.time()
 
     id2doc = {doc['_id']: doc for doc in corpus}
     for doc_id, score in results.items():
-        title, snippet_text, url = get_in4(doc_id, id2doc, inverted_index, tokens)
+        title, snippet_text, url = get_in4(doc_id, id2doc, inverted_index, corrected_query)
 
         print(doc_id, score)
         print(f'<a href="{url}">{title}</a>' if url else title)
         print(snippet_text)
         print("-" * 80)
 
+    print(f"Search completed in {end - start:.4f} seconds.")
+    
+
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Search engine script.")
+    parser.add_argument(
+        "--mode",
+        type=str,
+        choices=["semantic", "tfidf"],
+        help="Search mode: 'semantic' or 'tfidf'. Defaults to user input."
+    )
+    parser.add_argument(
+        "--corpus_path",
+        type=str,
+        default="data\\nfcorpus\\corpus.jsonl",
+        help="Path to the corpus file. Defaults to the path in ENV.json."
+    )
+    parser.add_argument(
+        "--index_path",
+        type=str,
+        default="data\semantic\index.index",
+        help="Path to the semantic search index file. Required for semantic mode if index is pre-built."
+    )
+    parser.add_argument(
+        "--inverted_index_path",
+        type=str,
+        default="data\inverted_index.json",
+        help="Path to the inverted index file for TF-IDF. Defaults to the path in ENV.json."
+    )
+    parser.add_argument(
+        "--query",
+        type=str,
+        default="statin effects on cholesterol" ,
+        help="Search query. Defaults to user input."
+    )
+    parser.add_argument(
+        "--top_k",
+        type=int,
+        default=5,
+        help="Number of top results to return. Defaults to 5."
+    )
+
+    args = parser.parse_args()
+
+    main(args)
+
+    # Example CLI usage:
+    # python src/searcher.py --mode semantic --corpus_path data/nfcorpus/corpus.jsonl --inverted_index_path data/inverted_index.json --query "statin effects on cholesterol" --index_path data/semantic/index.index
+    # python src/searcher.py --mode tfidf --corpus_path data/nfcorpus/corpus.jsonl --inverted_index_path data/inverted_index.json --query "statin effects on cholesterol"
+    
