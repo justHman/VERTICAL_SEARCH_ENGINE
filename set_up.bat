@@ -135,9 +135,9 @@ echo.
 
 :: Step 4: Build Inverted Index
 echo ┌─────────────────────────────────────────────────────────────────────────────────────┐
-echo │ STEP 4: Building Inverted Index                                                     │
+echo │ STEP 4: Building Inverted Index ^(TF-IDF^)                                          │
 echo └─────────────────────────────────────────────────────────────────────────────────────┘
-echo [INFO] Building inverted index from corpus...
+echo [INFO] Building TF-IDF inverted index from corpus...
 echo [INFO] This may take a few minutes depending on corpus size...
 python src\build_inverted_index.py
 if !errorlevel! neq 0 (
@@ -146,7 +146,53 @@ if !errorlevel! neq 0 (
     pause
     exit /b !errorlevel!
 )
-echo [SUCCESS] Inverted index built successfully.
+echo [SUCCESS] TF-IDF inverted index built successfully.
+echo.
+
+:: Step 4b: Optional Semantic Index
+echo ┌─────────────────────────────────────────────────────────────────────────────────────┐
+echo │ STEP 4b: Building Semantic Index ^(Optional^)                                       │
+echo └─────────────────────────────────────────────────────────────────────────────────────┘
+echo [INFO] Do you want to build a semantic search index? ^(y/n^):
+set /p build_semantic="> "
+if /i "!build_semantic!"=="y" (
+    echo [INFO] Select model:
+    echo   1. all-MiniLM-L6-v2 ^(fast, 384d, general-purpose^)
+    echo   2. multi-qa-mpnet-base-dot-v1 ^(high quality, 768d, Q^&A^)
+    echo   3. NeuML/pubmedbert-base-embeddings ^(biomedical, 768d, RECOMMENDED^)
+    set /p model_choice="> "
+    
+    if "!model_choice!"=="1" (
+        set MODEL_NAME=all-MiniLM-L6-v2
+        set INDEX_PATH=data\semantic\all-MiniLM-L6-v2\index
+    ) else if "!model_choice!"=="2" (
+        set MODEL_NAME=sentence-transformers/multi-qa-mpnet-base-dot-v1
+        set INDEX_PATH=data\semantic\multi-qa-mpnet-base-dot-v1\index
+    ) else if "!model_choice!"=="3" (
+        set MODEL_NAME=NeuML/pubmedbert-base-embeddings
+        set INDEX_PATH=data\semantic\S-PubMedBert-MS-MARCO\index
+    ) else (
+        set MODEL_NAME=NeuML/pubmedbert-base-embeddings
+        set INDEX_PATH=data\semantic\S-PubMedBert-MS-MARCO\index
+        echo [WARN] Invalid choice. Using recommended: PubMedBert
+    )
+    
+    echo [INFO] Building semantic index with model: !MODEL_NAME!...
+    echo [INFO] This may take 10-30 minutes depending on corpus size and hardware...
+    echo [INFO] GPU acceleration will be used if CUDA is available.
+    
+    python src\build_index.py --corpus_path data\nfcorpus\corpus.jsonl --index_path !INDEX_PATH! --model_name !MODEL_NAME!
+    
+    if !errorlevel! neq 0 (
+        echo [WARN] Semantic index building failed or was interrupted.
+        echo [HELP] You can build it later with: python src\build_index.py --model_name !MODEL_NAME!
+    ) else (
+        echo [SUCCESS] Semantic index built successfully at !INDEX_PATH!.index
+    )
+) else (
+    echo [INFO] Skipping semantic index building.
+    echo [INFO] You can build it later with: python src\build_index.py
+)
 echo.
 
 :: Step 5: Optional Evaluation

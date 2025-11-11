@@ -47,8 +47,8 @@ def evaluate_tfidf_search(df, inverted_index, corpus, queries, n_queries, range_
     scores["mAP"] = mAP
     return scores 
 
-def evaluate_semantic_search(df, index_path, corpus, queries, n_queries, range_k=range(1,20)):
-    semantic_search_engine = semantic_search(corpus)
+def evaluate_semantic_search(df, index_path, corpus, queries, n_queries, model_name, range_k=range(1,20)): 
+    semantic_search_engine = semantic_search(corpus, model_name=model_name)
     if index_path:
         semantic_search_engine.load_index(index_path)
 
@@ -109,10 +109,8 @@ def main():
     df = pd.read_csv(ENV["QRELS_PATH"])
     corpus = load_corpus(ENV["CORPUS_PATH"])
     queries = load_queries(ENV["QUERIES_PATH"])
-    inverted_index = load_inverted_index(ENV["INVERTED_INDEX_PATH"])
-    index_path = "data\semantic\index.index"
+    # inverted_index = load_inverted_index(ENV["INVERTED_INDEX_PATH"])
 
-    
     # Check for environment variable N_QUERIES from batch script
     n_queries_env = ENV["N_QUERIES"]
     if n_queries_env:
@@ -127,22 +125,24 @@ def main():
         n_queries = len(df['query_id'].unique())
 
 
-    alphas = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]  # Các giá trị alpha cần thử nghiệm
+    # alphas = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]  # Các giá trị alpha cần thử nghiệm
 
-    # Tìm alpha tốt nhất
-    best_alpha_mAP, best_alpha_precision, alpha_scores = find_best_alpha(df, inverted_index, corpus, queries, n_queries, alphas)
+    # # Tìm alpha tốt nhất
+    # best_alpha_mAP, best_alpha_precision, alpha_scores = find_best_alpha(df, inverted_index, corpus, queries, n_queries, alphas)
 
-    # Trực quan hóa kết quả
-    visualize_alpha_scores(alpha_scores, save_path="results/images/alpha_scores_2.png")
+    # # Trực quan hóa kết quả
+    # visualize_alpha_scores(alpha_scores, save_path="results/images/alpha_scores_2.png")
 
-    tfidf_scores = evaluate_tfidf_search(df, inverted_index, corpus, queries, n_queries, range_k=range(1,20), alpha=best_alpha_precision)
+    # tfidf_scores = evaluate_tfidf_search(df, inverted_index, corpus, queries, n_queries, range_k=range(1,20), alpha=best_alpha_precision)
+    # print(f"Evaluation completed with {n_queries} queries.")
+    # visualize_evaluate(tfidf_scores, n_queries, save_path='results/images/tfidf_evaluation.png')
+
+    # model_name = "pritamdeka/S-PubMedBert-MS-MARCO"
+    model_name = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
+    index_path = "data\semantic\multi-qa-mpnet-base-dot-v1\index.index"
+    semantic_scores = evaluate_semantic_search(df, index_path, corpus, queries, n_queries, model_name, range_k=range(1,20))
     print(f"Evaluation completed with {n_queries} queries.")
-    visualize_evaluate(tfidf_scores, n_queries, save_path='results/images/tfidf_evaluation.png')
-
-    semantic_scores = evaluate_semantic_search(df, index_path, corpus, queries, n_queries, range_k=range(1,20))
-    # scores = evaluate_tfidf_search(df, inverted_index, corpus, queries, n_queries, range_k=range(1,11))
-    print(f"Evaluation completed with {n_queries} queries.")
-    visualize_evaluate(semantic_scores, n_queries, save_path='results/images/semantic_evaluation.png')
+    visualize_evaluate(semantic_scores, n_queries, save_path='results/images/multi-qa-mpnet-base-dot-v1.png')
 
 if __name__ == "__main__":
     main()

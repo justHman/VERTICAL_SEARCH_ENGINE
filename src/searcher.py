@@ -8,6 +8,7 @@ import time
 import pickle
 import re
 import argparse
+from tqdm import tqdm
 from utils.processor import Text2Tokens, correct_text
 from utils.caculator import compute_tfidf
 from utils.processor import merge_ranges
@@ -28,7 +29,12 @@ class semantic_search:
         self.documents = documents
         
         # Tạo embeddings
-        embeddings = self.model.encode(documents)
+        # print(f"Encoding {len(documents)} documents")
+        embeddings = []
+        for doc in tqdm(documents, desc="Encoding documents"):
+            embedding = self.model.encode(doc, convert_to_tensor=False)
+            embeddings.append(embedding)
+        embeddings = np.array(embeddings)
         
         # Khởi tạo FAISS index
         dimension = embeddings.shape[1]
@@ -187,10 +193,29 @@ def main(args):
 
     mode = args.mode if args.mode else input("Choose search mode (semantic/tfidf) [tfidf]: ").strip().lower()
     if mode == "semantic":
-        semantic_search_engine = semantic_search(corpus)
+        # Determine model name based on index path or use specified model
+        model_name = args.model_name
+        if not model_name and args.index_path:
+            # Infer model from index path
+            if "all-MiniLM-L6-v2" in args.index_path:
+                model_name = "all-MiniLM-L6-v2"
+            elif "multi-qa-mpnet-base-dot-v1" in args.index_path: 
+                model_name = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
+            elif "pubmedbert" in args.index_path.lower() or "S-PubMedBert" in args.index_path:
+                model_name = "pritamdeka/S-PubMedBert-MS-MARCO"
+            else:
+                model_name = "all-MiniLM-L6-v2"  # Default
+        elif not model_name:
+            model_name = "all-MiniLM-L6-v2"  # Default
+        
+        print(f"Using semantic search with model: {model_name}")
+        semantic_search_engine = semantic_search(corpus, model_name=model_name)
+        
         if args.index_path:
+            print(f"Loading index from: {args.index_path}")
             semantic_search_engine.load_index(args.index_path)
         else:
+            print("Building index from scratch...")
             documents = [doc.get('text', '') for doc in corpus]
             semantic_search_engine.build_index(documents)
 
@@ -216,52 +241,80 @@ def main(args):
         print("-" * 80)
 
     print(f"Search completed in {end - start:.4f} seconds.")
+    print(f"Model used: {model_name if mode == 'semantic' else 'TF-IDF'}")
     
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Search engine script.")
+    parser = argparse.ArgumentParser(
+        description="Search engine script with dual search modes (TF-IDF and Semantic).",
+        epilog="""
+Examples:
+  # TF-IDF search
+  python src/searcher.py --mode tfidf --query "statin effects on cholesterol"
+  
+  # Semantic search with all-MiniLM-L6-v2
+  python src/searcher.py --mode semantic --query "heart disease prevention" --index_path data/semantic/all-MiniLM-L6-v2/index.index
+  
+  # Semantic search with PubMedBERT (auto-detect model from path)
+  python src/searcher.py --mode semantic --query "vitamin D deficiency" --index_path data/semantic/S-PubMedBert-MS-MARCO/index.index
+  
+  # Semantic search with explicit model specification
+  python src/searcher.py --mode semantic --query "omega-3 benefits" --index_path data/semantic/S-PubMedBert-MS-MARCO/index.index --model_name pritamdeka/S-PubMedBert-MS-MARCO
+        """,
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     parser.add_argument(
         "--mode",
         type=str,
         choices=["semantic", "tfidf"],
-        help="Search mode: 'semantic' or 'tfidf'. Defaults to user input."
+        default="tfidf",
+        help="Search mode: 'semantic' (neural embeddings) or 'tfidf' (keyword matching). Default: tfidf"
+    )
+    parser.add_argument(
+        "--model_name",
+        type=str,
+        default=None,
+        help="""Semantic model name (only for semantic mode). Options:
+        - all-MiniLM-L6-v2 (fast, general)
+        - sentence-transformers/multi-qa-mpnet-base-dot-v1 (Q&A optimized)
+        - pritamdeka/S-PubMedBert-MS-MARCO (biomedical domain)
+        If not specified, auto-detects from --index_path or uses default."""
     )
     parser.add_argument(
         "--corpus_path",
         type=str,
         default="data\\nfcorpus\\corpus.jsonl",
-        help="Path to the corpus file. Defaults to the path in ENV.json."
+        help="Path to the corpus file. Default: data/nfcorpus/corpus.jsonl"
     )
     parser.add_argument(
         "--index_path",
         type=str,
-        default="data\semantic\index.index",
-        help="Path to the semantic search index file. Required for semantic mode if index is pre-built."
+        default=None,
+        help="""Path to the semantic search index file (required for semantic mode).
+        Examples:
+        - data/semantic/all-MiniLM-L6-v2/index.index
+        - data/semantic/S-PubMedBert-MS-MARCO/index.index
+        - data/semantic/multi-qa-mpnet-base-dot-v1/index.index"""
     )
     parser.add_argument(
         "--inverted_index_path",
         type=str,
-        default="data\inverted_index.json",
-        help="Path to the inverted index file for TF-IDF. Defaults to the path in ENV.json."
+        default="data\\inverted_index.json",
+        help="Path to the inverted index file for TF-IDF. Default: data/inverted_index.json"
     )
     parser.add_argument(
         "--query",
         type=str,
-        default="statin effects on cholesterol" ,
-        help="Search query. Defaults to user input."
+        default="statin effects on cholesterol",
+        help="Search query. Default: 'statin effects on cholesterol'"
     )
     parser.add_argument(
         "--top_k",
         type=int,
         default=5,
-        help="Number of top results to return. Defaults to 5."
+        help="Number of top results to return. Default: 5"
     )
 
     args = parser.parse_args()
 
     main(args)
-
-    # Example CLI usage:
-    # python src/searcher.py --mode semantic --corpus_path data/nfcorpus/corpus.jsonl --inverted_index_path data/inverted_index.json --query "statin effects on cholesterol" --index_path data/semantic/index.index
-    # python src/searcher.py --mode tfidf --corpus_path data/nfcorpus/corpus.jsonl --inverted_index_path data/inverted_index.json --query "statin effects on cholesterol"
-    

@@ -11,18 +11,36 @@ ENV = load_env()
 
 nlp = spacy.load("en_core_web_sm")
 
-model_path = ENV["MODEL_PATH"]
-if not os.path.exists(model_path):
-    model_path = "oliverguhr/spelling-correction-english-base"
-tokenizer = AutoTokenizer.from_pretrained(model_path)
-model = AutoModelForSeq2SeqLM.from_pretrained(model_path) 
+# Lazy loading for spelling correction model
+_spelling_tokenizer = None
+_spelling_model = None
+
+def _get_spelling_model():
+    """Lazy load spelling correction model on first use"""
+    global _spelling_tokenizer, _spelling_model
+    
+    if _spelling_tokenizer is None or _spelling_model is None:
+        model_path = ENV["MODEL_PATH"]
+        if not os.path.exists(model_path):
+            model_path = "oliverguhr/spelling-correction-english-base"
+        
+        _spelling_tokenizer = AutoTokenizer.from_pretrained(model_path)
+        _spelling_model = AutoModelForSeq2SeqLM.from_pretrained(model_path)
+    
+    return _spelling_tokenizer, _spelling_model
 
 def correct_text(text):
+    """Correct spelling errors in text using transformer model"""
+    tokenizer, model = _get_spelling_model()
     inputs = tokenizer([text], return_tensors="pt")
     outputs = model.generate(**inputs)
     return tokenizer.decode(outputs[0], skip_special_tokens=True)
 
 def normalize_text(text):
+    # Handle None or non-string inputs
+    if not isinstance(text, str):
+        text = str(text) if text is not None else ""
+    
     # Loại bỏ escape unicode như \u2009, \u00a9, ...
     text = re.sub(r'\\u[0-9a-fA-F]{4}', ' ', text)
     # Loại bỏ emoji/icon (ký tự ngoài BMP)
